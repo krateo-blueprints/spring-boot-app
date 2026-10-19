@@ -1,0 +1,75 @@
+{{- /* Rendered per composition so the detail page can read the chart architecture through
+       snowplow /call under the caller's own RBAC. Edit data.architecture; the composer owns the rest. */}}
+{{- $g := .Values.global | default dict }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-architecture" ($g.compositionName | default .Release.Name) }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    krateo.io/architecture: "spring-boot-app"
+data:
+  architecture: |
+    apiVersion: architecture.krateo.io/v1alpha1
+    kind: ChartArchitecture
+    chart: spring-boot-app
+    resources:
+      - id: configmap
+        class: native
+        apiVersion: v1
+        kind: ConfigMap
+        template: templates/configmap.yaml
+        name: printf "%s-configmap" $.Release.Name | trunc 63 | trimSuffix "-"
+      - id: deployment
+        class: native
+        apiVersion: apps/v1
+        kind: Deployment
+        template: templates/deployment.yaml
+        name: printf "%s-deployment" $.Release.Name | trunc 63 | trimSuffix "-"
+        dependsOn:
+          - ref: configmap
+        readyWhen: .status.availableReplicas
+      - id: service
+        class: native
+        apiVersion: v1
+        kind: Service
+        template: templates/service.yaml
+        name: printf "%s-service" $.Release.Name | trunc 63 | trimSuffix "-"
+        dependsOn:
+          - ref: deployment
+            ready: true
+      - id: ingress
+        class: native
+        apiVersion: networking.k8s.io/v1
+        kind: Ingress
+        template: templates/ingress.yaml
+        name: printf "%s-ingress" $.Release.Name | trunc 63 | trimSuffix "-"
+        when: .Values.ingress.enabled
+        dependsOn:
+          - ref: service
+    states:
+      - name: configuration
+      - name: workload
+      - name: networking
+      - name: ingress
+{{- /* krateo:graph begin — generated from data.architecture; edit the descriptor, not this block. */}}
+{{- $v := .Values.AsMap }}
+{{- $nodes := list }}
+{{- $names := list }}
+{{- $present := true }}
+{{- $names = append $names (printf "%s-configmap" $.Release.Name | trunc 63 | trimSuffix "-") }}
+{{- $nodes = append $nodes (dict "id" "configmap" "apiVersion" "v1" "kind" "ConfigMap" "class" "native" "level" 0 "forEach" false "present" $present "names" $names "dependsOn" (list)) }}
+{{- $names = list }}
+{{- $present = true }}
+{{- $names = append $names (printf "%s-deployment" $.Release.Name | trunc 63 | trimSuffix "-") }}
+{{- $nodes = append $nodes (dict "id" "deployment" "apiVersion" "apps/v1" "kind" "Deployment" "class" "native" "level" 1 "readyWhen" ".status.availableReplicas" "forEach" false "present" $present "names" $names "dependsOn" (list (dict "ref" "configmap" "ready" false "all" false "active" true))) }}
+{{- $names = list }}
+{{- $present = true }}
+{{- $names = append $names (printf "%s-service" $.Release.Name | trunc 63 | trimSuffix "-") }}
+{{- $nodes = append $nodes (dict "id" "service" "apiVersion" "v1" "kind" "Service" "class" "native" "level" 2 "forEach" false "present" $present "names" $names "dependsOn" (list (dict "ref" "deployment" "ready" true "all" false "active" true))) }}
+{{- $names = list }}
+{{- $present = not (empty (dig "ingress" "enabled" "" $v)) }}
+{{- if $present }}{{- $names = append $names (printf "%s-ingress" $.Release.Name | trunc 63 | trimSuffix "-") }}{{- end }}
+{{- $nodes = append $nodes (dict "id" "ingress" "apiVersion" "networking.k8s.io/v1" "kind" "Ingress" "class" "native" "level" 3 "forEach" false "present" $present "names" $names "dependsOn" (list (dict "ref" "service" "ready" false "all" false "active" true))) }}
+  graph: {{ dict "v" 1 "chart" "spring-boot-app" "states" (list "configuration" "workload" "networking" "ingress") "composition" (dict "apiVersion" ($g.compositionApiVersion | default "") "resource" ($g.compositionResource | default "") "name" ($g.compositionName | default "") "namespace" .Release.Namespace "uid" ($g.compositionId | default "")) "nodes" $nodes | toJson | quote }}
+{{- /* krateo:graph end */}}
