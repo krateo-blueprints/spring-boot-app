@@ -1,0 +1,33 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/krateo-platformops/spring-petclinic
+  tag: "3.2.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  host: spring-app.example.com
+  path: /
+  pathType: Prefix
+  annotations: {}
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+probes:
+  liveness:
+    path: /actuator/health/liveness
+  readiness:
+    path: /actuator/health/readiness
