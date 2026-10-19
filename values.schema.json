@@ -1,0 +1,165 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "replicaCount": {
+      "type": "integer",
+      "title": "Replica Count",
+      "default": 2,
+      "minimum": 1
+    },
+    "image": {
+      "type": "object",
+      "title": "Container Image",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "title": "Repository",
+          "default": "ghcr.io/krateo-platformops/spring-petclinic"
+        },
+        "tag": {
+          "type": "string",
+          "title": "Tag",
+          "default": "3.2.0"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "title": "Pull Policy",
+          "default": "IfNotPresent"
+        }
+      },
+      "required": ["repository", "tag"]
+    },
+    "service": {
+      "type": "object",
+      "title": "Service",
+      "properties": {
+        "type": {
+          "type": "string",
+          "title": "Service Type",
+          "default": "ClusterIP"
+        },
+        "port": {
+          "type": "integer",
+          "title": "Port",
+          "default": 80
+        },
+        "targetPort": {
+          "type": "integer",
+          "title": "Target Port",
+          "default": 8080
+        }
+      },
+      "required": ["port", "targetPort"]
+    },
+    "ingress": {
+      "type": "object",
+      "title": "Ingress",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enable Ingress",
+          "default": true
+        },
+        "className": {
+          "type": "string",
+          "title": "Ingress Class Name",
+          "default": "nginx"
+        },
+        "host": {
+          "type": "string",
+          "title": "Host",
+          "default": "spring-app.example.com"
+        },
+        "path": {
+          "type": "string",
+          "title": "Path",
+          "default": "/"
+        },
+        "pathType": {
+          "type": "string",
+          "title": "Path Type",
+          "default": "Prefix"
+        },
+        "annotations": {
+          "type": "object",
+          "title": "Annotations"
+        }
+      },
+      "required": ["enabled", "host", "path", "pathType"]
+    },
+    "resources": {
+      "type": "object",
+      "title": "Resource Allocation",
+      "properties": {
+        "requests": {
+          "type": "object",
+          "title": "Resource Requests",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "title": "CPU Request",
+              "default": "250m"
+            },
+            "memory": {
+              "type": "string",
+              "title": "Memory Request",
+              "default": "512Mi"
+            }
+          },
+          "required": ["cpu", "memory"]
+        },
+        "limits": {
+          "type": "object",
+          "title": "Resource Limits",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "title": "CPU Limit",
+              "default": "1000m"
+            },
+            "memory": {
+              "type": "string",
+              "title": "Memory Limit",
+              "default": "1Gi"
+            }
+          },
+          "required": ["cpu", "memory"]
+        }
+      },
+      "required": ["requests", "limits"]
+    },
+    "probes": {
+      "type": "object",
+      "title": "Health Probes",
+      "properties": {
+        "liveness": {
+          "type": "object",
+          "title": "Liveness Probe",
+          "properties": {
+            "path": {
+              "type": "string",
+              "title": "Liveness Path",
+              "default": "/actuator/health/liveness"
+            }
+          }
+        },
+        "readiness": {
+          "type": "object",
+          "title": "Readiness Probe",
+          "properties": {
+            "path": {
+              "type": "string",
+              "title": "Readiness Path",
+              "default": "/actuator/health/readiness"
+            }
+          }
+        }
+      }
+    },
+    "global": {
+      "type": "object",
+      "title": "Global Parameters"
+    }
+  }
+}
